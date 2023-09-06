@@ -5,6 +5,8 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4, mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+from janome.tokenizer import Tokenizer
+from my_library import mor_ana
 
 app = FastAPI()
 
@@ -52,7 +54,36 @@ async def generate_pdf(title: str = Form(...), name: str = Form(...), originalKe
     x += x_index + c.stringWidth(capo)
     c.drawString(x, y, playKey)
     x += x_index + c.stringWidth(playKey)
-    c.drawString(x, y, lyric)
+
+    # ３行目以降（lyric)
+    c.setFont("HeiseiMin-W3", 12)
+    x = 10*mm
+    y -= y_index + 10*mm
+    max_length = 40
+    lyric_split = mor_ana.split_sentence_by_particles(lyric)
+    lyric_split = mor_ana.join_elements_with_limit(lyric_split, max_length)
+
+    t = Tokenizer()
+    for line in range(len(lyric_split)):
+        lyric_split[line] = list(t.tokenize(lyric_split[line], wakati=True))
+        lyric_split[line] = mor_ana.code_join(lyric_split[line])
+        for lyric_item in lyric_split[line]:
+            if lyric_item.startswith("[") and lyric_item.endswith("]"):
+                lyric_item = lyric_item.replace('[','')
+                lyric_item = lyric_item.replace(']','')
+                c.drawString(x, y+5*mm, lyric_item)
+            else:
+                c.drawString(x, y, lyric_item)
+                x += c.stringWidth(lyric_item, "HeiseiMin-W3", 12)
+        x = 10*mm
+        y -= y_index
+
+        # 次のページ
+        if y <= 0:
+            c.showPage()
+            c.setFont("HeiseiMin-W3", 12)
+            y = A4[1] - 15*mm
+
     c.save()
 
     return FileResponse(pdf_filename, headers={"Content-Disposition": "inline; filename=generate_pdf.pdf"})
