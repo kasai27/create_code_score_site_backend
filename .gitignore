@@ -2,3 +2,6 @@
 /venv
 /generated_pdf.pdf
 /my_library/__pycache__
+/mp3files
+/sample.py
+/search_key.py

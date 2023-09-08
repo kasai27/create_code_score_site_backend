@@ -25,6 +25,8 @@ app.add_middleware(
 
 @app.post("/generate_pdf/")
 async def generate_pdf(title: str = Form(...), name: str = Form(...), originalKey: str = Form(...), capo: str = Form(...), playKey: str = Form(...), lyric: str = Form(...)):
+    originalKey = "key: " + originalKey
+    playKey = "play key: " + playKey
     pdf_filename = "generated_pdf.pdf"
 
     # フォントの設定
