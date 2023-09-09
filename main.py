@@ -12,6 +12,7 @@ app = FastAPI()
 
 origins = {
     "http://localhost:3000",
+    "https://create-code-score-site.vercel.app",
 }
 
 app.add_middleware(
